@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gecko Chat Widget Demo</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="https://app.geckochat.io/favicons/favicon-32x32.png">
+    <style>
+        :root {
+            --color-background: #9adbe8;
+            --color-primary: #004c97;
+            --color-secondary: #eef2f7;
+            --color-highlight: #8de971;
+            --color-text: #555555;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            color: var(--color-text);
+            background-color: #f9f9f9;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            height: 40px;
+            margin-right: 15px;
+        }
+        
+        .header-title {
+            color: var(--color-primary);
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .container {
+            margin-top: 30px;
+        }
+        
+        .card {
+            background-color: var(--color-secondary);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card-title {
+            color: var(--color-primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .error {
+            color: #d9534f;
+            padding: 15px;
+            background-color: #f8d7da;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d9534f;
+        }
+        
+        .success {
+            color: #2e7d32;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--color-highlight);
+        }
+        
+        code {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+        
+        #example-url {
+            display: block;
+            padding: 12px;
+            margin: 10px 0;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 6px;
+            word-break: break-all;
+        }
+        
+        footer {
+            max-width: 1000px;
+            margin: 20px auto;
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            padding: 0 20px 40px 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="https://account-stage.geckoengage.com/images/gecko.svg" alt="Gecko Logo" class="logo">
+            <h1 class="header-title">Chat Widget Configurator</h1>
+        </div>
+    </header>
+    
+    <div class="main-content">
+        <div id="status"></div>
+        
+        <div class="card">
+            <h2 class="card-title">How to use this page</h2>
+            <p>Add the following parameters to the URL to load a specific Gecko Chat widget:</p>
+            <p><code>?widgetId=YOUR_WIDGET_ID&accountName=YOUR_ACCOUNT_NAME</code></p>
+            <p>For example:</p>
+            <code id="example-url"></code>
+        </div>
+    </div>
+    
+    <footer>
+        &copy; GeckoEngage
+    </footer>
+
+    <script>
+        // Function to get URL parameters
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                widgetId: params.get('widgetId'),
+                accountName: params.get('accountName')
+            };
+        }
+        
+        // Function to sanitize input
+        function sanitizeInput(input) {
+            if (!input) return '';
+            // Only allow alphanumeric characters, hyphens, and underscores
+            return input.replace(/[^a-zA-Z0-9_\-]/g, '');
+        }
+
+        // Function to load the Gecko chat widget
+        function loadGeckoWidget(widgetId, accountName) {
+            if (!widgetId || !accountName) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        <strong>Missing parameters!</strong> Please provide both widgetId and accountName in the URL.
+                    </div>
+                `;
+                return false;
+            }
+            
+            // Sanitize inputs before using them
+            const safeWidgetId = sanitizeInput(widgetId);
+            const safeAccountName = sanitizeInput(accountName);
+            
+            // Check if sanitization removed essential parts of the parameters
+            if (safeWidgetId !== widgetId || safeAccountName !== accountName) {
+                document.getElementById('status').innerHTML = `
+                    <div class="error">
+                        <strong>Invalid characters detected!</strong> Parameters should only contain letters, numbers, hyphens, and underscores.
+                    </div>
+                `;
+                return false;
+            }
+
+            // Create the first script element with widget settings
+            const settingsScript = document.createElement('script');
+            settingsScript.type = 'text/javascript';
+            settingsScript.text = `window.GeckoChatSettings={widgetId:"${safeWidgetId}",accountName:"${safeAccountName}",};`;
+            document.head.appendChild(settingsScript);
+
+            // Create the second script element to load the widget
+            const widgetScript = document.createElement('script');
+            widgetScript.type = 'text/javascript';
+            widgetScript.src = 'https://chat-widget.geckoengage.com';
+            document.head.appendChild(widgetScript);
+
+            document.getElementById('status').innerHTML = `
+                <div class="success">
+                    <strong>Widget loaded successfully!</strong><br>
+                    Widget ID: ${safeWidgetId}<br>
+                    Account Name: ${safeAccountName}
+                </div>
+            `;
+            return true;
+        }
+
+        // On page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = getUrlParams();
+            const currentUrl = window.location.href.split('?')[0];
+            
+            document.getElementById('example-url').textContent = 
+                `${currentUrl}?widgetId=ABCDEf12gHIjKLmN-34OPQ5RSTUV7W8X9Y0Z1A2BCDE&accountName=GeckoTest`;
+            
+            loadGeckoWidget(params.widgetId, params.accountName);
+        });
+    </script>
+</body>
+</html>
