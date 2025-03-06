@@ -134,6 +134,18 @@
         <div id="status"></div>
         
         <div class="card">
+            <h2 class="card-title">Generate URL from Script</h2>
+            <p>Paste your Gecko Chat script below and click "Generate URL" to create a shareable link:</p>
+            <textarea id="script-input" placeholder="Paste your script here... (e.g., <script type=&quot;text/javascript&quot;>window.GeckoChatSettings={widgetId:&quot;...&quot;,accountName:&quot;...&quot;,};</script><script type=&quot;text/javascript&quot; src=&quot;https://chat-widget.geckoengage.com&quot;></script>)" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ddd;"></textarea>
+            <button id="generate-url" style="background-color: var(--color-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Generate URL</button>
+            <div id="url-result" style="margin-top: 15px; display: none;">
+                <p>Your shareable URL:</p>
+                <div id="generated-url" style="padding: 12px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; word-break: break-all; margin-bottom: 10px;"></div>
+                <div id="copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
+            </div>
+        </div>
+        
+        <div class="card">
             <h2 class="card-title">How to use this page</h2>
             <p>Add the following parameters to the URL to load a specific Gecko Chat widget:</p>
             <p><code>?widgetId=YOUR_WIDGET_ID&accountName=YOUR_ACCOUNT_NAME</code></p>
@@ -143,7 +155,7 @@
     </div>
     
     <footer>
-        &copy; GeckoEngage
+        &copy; Gecko - Student Engagement Platform
     </footer>
 
     <script>
@@ -209,6 +221,65 @@
             `;
             return true;
         }
+        
+        // Function to extract parameters from script
+        function extractParamsFromScript(scriptText) {
+            const widgetIdMatch = scriptText.match(/widgetId:"([^"]+)"/);
+            const accountNameMatch = scriptText.match(/accountName:"([^"]+)"/);
+            
+            if (widgetIdMatch && accountNameMatch) {
+                return {
+                    widgetId: widgetIdMatch[1],
+                    accountName: accountNameMatch[1]
+                };
+            }
+            
+            return null;
+        }
+        
+        // Function to generate URL and copy to clipboard
+        function generateAndCopyUrl() {
+            const scriptInput = document.getElementById('script-input').value;
+            const urlResult = document.getElementById('url-result');
+            const generatedUrl = document.getElementById('generated-url');
+            const copyMessage = document.getElementById('copy-message');
+            
+            // Hide previous results
+            copyMessage.style.display = 'none';
+            
+            // Extract parameters from script
+            const params = extractParamsFromScript(scriptInput);
+            
+            if (!params) {
+                urlResult.style.display = 'block';
+                generatedUrl.innerHTML = `
+                    <div class="error">
+                        <strong>Invalid script format!</strong> Could not extract widgetId and accountName.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Generate URL
+            const baseUrl = window.location.href.split('?')[0];
+            const fullUrl = `${baseUrl}?widgetId=${params.widgetId}&accountName=${params.accountName}`;
+            
+            // Display URL
+            urlResult.style.display = 'block';
+            generatedUrl.textContent = fullUrl;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(fullUrl)
+                .then(() => {
+                    copyMessage.style.display = 'block';
+                    setTimeout(() => {
+                        copyMessage.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
 
         // On page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -216,7 +287,10 @@
             const currentUrl = window.location.href.split('?')[0];
             
             document.getElementById('example-url').textContent = 
-                `${currentUrl}?widgetId=ABCDEf12gHIjKLmN-34OPQ5RSTUV7W8X9Y0Z1A2BCDE&accountName=GeckoTest`;
+                `${currentUrl}?widgetId=ACEUTp31zNUyIMiT-01JDA5SJJZY6C4W9J8Q8V6NQFD&accountName=jr123`;
+            
+            // Set up generate URL button
+            document.getElementById('generate-url').addEventListener('click', generateAndCopyUrl);
             
             loadGeckoWidget(params.widgetId, params.accountName);
         });
