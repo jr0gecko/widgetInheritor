@@ -12,6 +12,7 @@
             --color-secondary: #eef2f7;
             --color-highlight: #8de971;
             --color-text: #555555;
+            --widget-theme: var(--color-primary); 
         }
         
         body {
@@ -120,6 +121,150 @@
             font-size: 0.9em;
             padding: 0 20px 40px 20px;
         }
+
+        /* New styles for the updated interface */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .primary-button {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+            transition: background-color 0.2s;
+        }
+
+        .primary-button:hover {
+            background-color: #003a74;
+        }
+
+        .code-block-container {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .code-block {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .copy-button:hover {
+            opacity: 1;
+        }
+
+        .instructions {
+            background-color: #f0f7ff;
+            border-left: 4px solid var(--color-primary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: var(--color-primary);
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        /* Client View Styles */
+        .client-view {
+            display: none; /* Hidden by default */
+        }
+
+        .admin-view {
+            display: block; /* Shown by default */
+        }
+
+        .client-content {
+            transition: background-color 0.5s ease;
+        }
+
+        .chat-pointer {
+            position: fixed;
+            bottom: 100px;
+            right: 80px;
+            width: 120px;
+            height: 80px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23004c97'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            transform: rotate(45deg);
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: rotate(45deg) scale(1); }
+            50% { opacity: 0.8; transform: rotate(45deg) scale(1.1); }
+            100% { opacity: 0.5; transform: rotate(45deg) scale(1); }
+        }
+
+        .welcome-message {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+
+        .welcome-message h2 {
+            color: var(--widget-theme);
+            margin-bottom: 15px;
+        }
+
+        .widget-info {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .widget-info-card {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .widget-info-card h3 {
+            color: var(--widget-theme);
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -130,27 +275,89 @@
         </div>
     </header>
     
-    <div class="main-content">
-        <div id="status"></div>
+    <!-- Admin View -->
+    <div class="main-content admin-view" id="admin-view">
+        <div id="admin-status"></div>
         
         <div class="card">
-            <h2 class="card-title">Generate URL from Script</h2>
-            <p>Paste your Gecko Chat script below and click "Generate URL" to create a shareable link:</p>
-            <textarea id="script-input" placeholder="Paste your script here... (e.g., <script type=&quot;text/javascript&quot;>window.GeckoChatSettings={widgetId:&quot;...&quot;,accountName:&quot;...&quot;,};</script><script type=&quot;text/javascript&quot; src=&quot;https://chat-widget.geckoengage.com&quot;></script>)" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ddd;"></textarea>
-            <button id="generate-url" style="background-color: var(--color-primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">Generate URL</button>
+            <h2 class="card-title">Generate Tools from Widget Script</h2>
+            <p>Paste your Gecko Chat script below (<a href='https://app.geckoengage.com/admin/settings/widgets' target="_blank">Settings > Chat settings > Widgets > Embed Code</a>) and select an option:</p>
+            <textarea id="script-input" placeholder="e.g., <script type=&quot;text/javascript&quot;>window.GeckoChatSettings={widgetId:&quot;...&quot;,accountName:&quot;...&quot;,};</script><script type=&quot;text/javascript&quot; src=&quot;https://chat-widget.geckoengage.com&quot;></script>" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ddd;"></textarea>
+            
+            <div class="button-group">
+                <button id="generate-console" class="primary-button">Generate Console Code</button>
+                <button id="generate-url" class="primary-button">Create Shareable Test Page</button>
+            </div>
+            
+            <div id="console-result" style="margin-top: 15px; display: none;">
+                <p>Copy and paste this code into your browser's console on any webpage:</p>
+                <div class="code-block-container">
+                    <pre id="console-code" class="code-block"></pre>
+                    <button id="copy-console" class="copy-button">Copy</button>
+                </div>
+                <div id="console-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
+                
+                <div class="instructions">
+                    <h3>How to use Console Code</h3>
+                    <ol>
+                        <li>Navigate to the client's website where you want to demo the chat widget</li>
+                        <li>Open the browser's developer console:
+                            <ul>
+                                <li>Chrome/Edge: Press F12 or right-click and select "Inspect" then click on "Console" tab</li>
+                                <li>Firefox: Press F12 or right-click and select "Inspect Element" then click on "Console" tab</li>
+                                <li>Safari: First enable Developer Tools in Preferences > Advanced, then press Option+Command+C</li>
+                            </ul>
+                        </li>
+                        <li>Paste the code above into the console and press Enter</li>
+                        <li>The chat widget will appear on the page, ready for demonstration</li>
+                    </ol>
+                </div>
+            </div>
+            
             <div id="url-result" style="margin-top: 15px; display: none;">
-                <p>Your shareable URL:</p>
-                <div id="generated-url" style="padding: 12px; background-color: rgba(0, 0, 0, 0.05); border-radius: 6px; word-break: break-all; margin-bottom: 10px;"></div>
-                <div id="copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
+                <p>Your shareable test page URL:</p>
+                <div id="generated-url" class="code-block" style="padding: 12px; margin-bottom: 10px;"></div>
+                <div id="url-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
+                <p>Share this URL with clients to let them test the chat widget without any technical setup.</p>
             </div>
         </div>
+    </div>
+    
+    <!-- Client View -->
+    <div class="main-content client-view" id="client-view">
+        <div id="client-status"></div>
         
-        <div class="card">
-            <h2 class="card-title">How to use this page</h2>
-            <p>Add the following parameters to the URL to load a specific Gecko Chat widget:</p>
-            <p><code>?widgetId=YOUR_WIDGET_ID&accountName=YOUR_ACCOUNT_NAME</code></p>
-            <p>For example:</p>
-            <code id="example-url"></code>
+        <div class="client-content" id="client-content">
+            <div class="welcome-message">
+                <h2>👋 Welcome to Your Gecko Chat Widget Testing Page!</h2>
+                <p>This page has been set up with your custom Gecko Chat widget for easy testing. Interact with the chat widget by clicking the icon in the bottom right corner of this page.</p>
+            </div>
+            
+            <div class="widget-info">
+                <div class="widget-info-card">
+                    <h3>💡 How to Use This Chat Widget</h3>
+                    <ol>
+                        <li>Click the chat icon in the bottom-right corner of the page</li>
+                        <li>Type your message and press Enter or click Send</li>
+                        <li>Try asking questions you know students will ask, as well as questions that you're scared students <i>might</i> ask.</li>
+                        <li>Liked the answer? Click 👍. Disliked an answer or want to discuss it further? Click 👎.</li>
+                    </ol>
+                    <p>This test page allows you to experience the chat from the student/user's perspective as if they were on your website.</p>
+                </div>
+                
+                <div class="widget-info-card">
+                    <h3>⚙️ Installation Instructions</h3>
+                    <p>When you're ready to add this chat widget to your website, send the following code to your IT team:</p>
+                    <div class="code-block-container">
+                        <pre id="embed-code" class="code-block"></pre>
+                        <button id="copy-embed" class="copy-button">Copy</button>
+                    </div>
+                    <div id="embed-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
+                    <p>This code should be added just before the closing <code>&lt;/body&gt;</code> tag on any page where you want the chat widget to appear.</p>
+                </div>
+            </div>
+            
+            <div class="chat-pointer" id="chat-pointer"></div>
         </div>
     </div>
     
@@ -164,7 +371,8 @@
             const params = new URLSearchParams(window.location.search);
             return {
                 widgetId: params.get('widgetId'),
-                accountName: params.get('accountName')
+                accountName: params.get('accountName'),
+                themeColor: params.get('themeColor') // Optional parameter for theme color
             };
         }
         
@@ -174,15 +382,34 @@
             // Only allow alphanumeric characters, hyphens, and underscores
             return input.replace(/[^a-zA-Z0-9_\-]/g, '');
         }
+        
+        // Function to sanitize color code
+        function sanitizeColor(color) {
+            if (!color) return null;
+            // Accept hex colors with or without #
+            if (/^#?[0-9A-Fa-f]{6}$/.test(color)) {
+                return color.startsWith('#') ? color : `#${color}`;
+            }
+            return null;
+        }
 
         // Function to load the Gecko chat widget
-        function loadGeckoWidget(widgetId, accountName) {
+        function loadGeckoWidget(widgetId, accountName, themeColor) {
             if (!widgetId || !accountName) {
-                document.getElementById('status').innerHTML = `
-                    <div class="error">
-                        <strong>Missing parameters!</strong> Please provide both widgetId and accountName in the URL.
-                    </div>
-                `;
+                // If we're in client view, show a different error
+                if (document.getElementById('client-view').style.display === 'block') {
+                    document.getElementById('client-status').innerHTML = `
+                        <div class="error">
+                            <strong>Widget configuration error!</strong> Please contact your Gecko representative for assistance.
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('admin-status').innerHTML = `
+                        <div class="error">
+                            <strong>Missing parameters!</strong> Please provide both widgetId and accountName.
+                        </div>
+                    `;
+                }
                 return false;
             }
             
@@ -192,7 +419,10 @@
             
             // Check if sanitization removed essential parts of the parameters
             if (safeWidgetId !== widgetId || safeAccountName !== accountName) {
-                document.getElementById('status').innerHTML = `
+                const statusElement = document.getElementById('client-view').style.display === 'block' ? 
+                    document.getElementById('client-status') : document.getElementById('admin-status');
+                
+                statusElement.innerHTML = `
                     <div class="error">
                         <strong>Invalid characters detected!</strong> Parameters should only contain letters, numbers, hyphens, and underscores.
                     </div>
@@ -212,13 +442,38 @@
             widgetScript.src = 'https://chat-widget.geckoengage.com';
             document.head.appendChild(widgetScript);
 
-            document.getElementById('status').innerHTML = `
-                <div class="success">
-                    <strong>Widget loaded successfully!</strong><br>
-                    Widget ID: ${safeWidgetId}<br>
-                    Account Name: ${safeAccountName}
-                </div>
-            `;
+            // If in client view, populate the embed code
+            if (document.getElementById('client-view').style.display === 'block') {
+                document.getElementById('embed-code').textContent = 
+                    `<script type="text/javascript">
+window.GeckoChatSettings = {
+    widgetId: "${safeWidgetId}",
+    accountName: "${safeAccountName}"
+};
+<\/script>
+<script type="text/javascript" src="https://chat-widget.geckoengage.com"><\/script>`;
+
+                // If theme color is provided, apply it to the client view
+                if (themeColor) {
+                    const safeColor = sanitizeColor(themeColor);
+                    if (safeColor) {
+                        document.documentElement.style.setProperty('--widget-theme', safeColor);
+                        
+                        // Apply a very light version of the theme color to the background
+                        const lightColor = `${safeColor}10`; // 10% opacity
+                        document.getElementById('client-content').style.backgroundColor = lightColor;
+                    }
+                }
+            } else {
+                document.getElementById('admin-status').innerHTML = `
+                    <div class="success">
+                        <strong>Widget loaded successfully!</strong><br>
+                        Widget ID: ${safeWidgetId}<br>
+                        Account Name: ${safeAccountName}
+                    </div>
+                `;
+            }
+            
             return true;
         }
         
@@ -237,14 +492,69 @@
             return null;
         }
         
+        // Function to generate console code
+        function generateConsoleCode() {
+            const scriptInput = document.getElementById('script-input').value;
+            const consoleResult = document.getElementById('console-result');
+            const consoleCode = document.getElementById('console-code');
+            const copyMessage = document.getElementById('console-copy-message');
+            const urlResult = document.getElementById('url-result');
+            
+            // Hide other results and reset
+            urlResult.style.display = 'none';
+            copyMessage.style.display = 'none';
+            
+            // Extract parameters from script
+            const params = extractParamsFromScript(scriptInput);
+            
+            if (!params) {
+                consoleResult.style.display = 'block';
+                consoleCode.innerHTML = `<div class="error">
+                    <strong>Invalid script format!</strong> Could not extract widgetId and accountName.
+                </div>`;
+                return;
+            }
+            
+            // Generate console code
+            const code = `// Set widget settings
+window.GeckoChatSettings = {
+    widgetId: "${params.widgetId}",
+    accountName: "${params.accountName}"
+};
+
+// Load GeckoChat script dynamically
+var script = document.createElement('script');
+script.type = 'text/javascript';
+script.src = 'https://chat-widget.geckoengage.com';
+document.head.appendChild(script);`;
+            
+            // Display code
+            consoleResult.style.display = 'block';
+            consoleCode.textContent = code;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    copyMessage.style.display = 'block';
+                    setTimeout(() => {
+                        copyMessage.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
+        
         // Function to generate URL and copy to clipboard
         function generateAndCopyUrl() {
             const scriptInput = document.getElementById('script-input').value;
             const urlResult = document.getElementById('url-result');
             const generatedUrl = document.getElementById('generated-url');
-            const copyMessage = document.getElementById('copy-message');
+            const copyMessage = document.getElementById('url-copy-message');
+            const consoleResult = document.getElementById('console-result');
             
-            // Hide previous results
+            // Hide other results and reset
+            consoleResult.style.display = 'none';
             copyMessage.style.display = 'none';
             
             // Extract parameters from script
@@ -280,20 +590,82 @@
                     console.error('Could not copy text: ', err);
                 });
         }
+        
+        // Function to copy embed code
+        function copyEmbedCode() {
+            const embedCode = document.getElementById('embed-code').textContent;
+            const copyMessage = document.getElementById('embed-copy-message');
+            
+            navigator.clipboard.writeText(embedCode)
+                .then(() => {
+                    copyMessage.style.display = 'block';
+                    setTimeout(() => {
+                        copyMessage.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Could not copy text: ', err);
+                });
+        }
 
         // On page load
         document.addEventListener('DOMContentLoaded', function() {
             const params = getUrlParams();
-            const currentUrl = window.location.href.split('?')[0];
             
-            document.getElementById('example-url').textContent = 
-                `${currentUrl}?widgetId=ABCDEf12gHIjKLmN-34OPQ5RSTUV7W8X9Y0Z1A2BCDE&accountName=GeckoTest`;
+            // Set up copy buttons
+            document.getElementById('copy-console').addEventListener('click', function() {
+                const code = document.getElementById('console-code').textContent;
+                navigator.clipboard.writeText(code)
+                    .then(() => {
+                        const copyMessage = document.getElementById('console-copy-message');
+                        copyMessage.style.display = 'block';
+                        setTimeout(() => {
+                            copyMessage.style.display = 'none';
+                        }, 3000);
+                    });
+            });
             
-            // Set up generate URL button
+            document.getElementById('copy-embed').addEventListener('click', copyEmbedCode);
+            
+            // Set up action buttons
+            document.getElementById('generate-console').addEventListener('click', generateConsoleCode);
             document.getElementById('generate-url').addEventListener('click', generateAndCopyUrl);
             
-            loadGeckoWidget(params.widgetId, params.accountName);
+            // Check if we should show client or admin view
+            if (params.widgetId && params.accountName) {
+                // Show client view, hide admin view
+                document.getElementById('client-view').style.display = 'block';
+                document.getElementById('admin-view').style.display = 'none';
+                
+                // Load the widget
+                loadGeckoWidget(params.widgetId, params.accountName, params.themeColor);
+                
+                // Hide the chat pointer after 10 seconds
+                setTimeout(() => {
+                    const pointer = document.getElementById('chat-pointer');
+                    if (pointer) {
+                        pointer.style.opacity = '0';
+                        pointer.style.transition = 'opacity 1s ease';
+                    }
+                }, 10000);
+            } else {
+                // Show admin view, hide client view
+                document.getElementById('admin-view').style.display = 'block';
+                document.getElementById('client-view').style.display = 'none';
+            }
         });
+        
+        // Try to detect widget theme color (this is experimental and may not work)
+        window.addEventListener('message', function(event) {
+            // Check if the message is from the Gecko Chat widget
+            if (event.data && event.data.type === 'geckochat:loaded') {
+                console.log('Gecko Chat widget loaded');
+                
+                // The widget doesn't currently broadcast its theme color,
+                // but if it did in the future, we could capture it here
+            }
+        });
+    </script>
     </script>
 </body>
 </html>
