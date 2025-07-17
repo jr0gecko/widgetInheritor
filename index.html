@@ -3,670 +3,816 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gecko Chat Widget Demo</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="https://app.geckochat.io/favicons/favicon-32x32.png">
+    <title>AI Chatbot Implementation Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* styles.css */
         :root {
-            --color-background: #9adbe8;
-            --color-primary: #004c97;
-            --color-secondary: #eef2f7;
-            --color-highlight: #8de971;
-            --color-text: #555555;
-            --widget-theme: var(--color-primary); /* Default theme that can be overridden */
+            --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            
+            /* Light Theme (Default) */
+            --bg: #FFFFFF;
+            --text: #111827;
+            --surface: #f9fafb;
+            --border: #e5e7eb;
+            --text-muted: #6b7280;
+            --gradient-start: #8DE971;
+            --gradient-stop: #71E9A5;
+            --accent: #6BEC5F;
+            --accent-hover: #5ee054;
+            --code-bg: #1f2937;
+            --code-text: #f9fafb;
+            --error-bg: #fef2f2;
+            --error-text: #991b1b;
+            --error-border: #fecaca;
+            --logo-filter: invert(0);
         }
-        
+
+        [data-theme="dark"] {
+            --bg: #111827;
+            --text: #FFFFFF;
+            --surface: #1f2937;
+            --border: #374151;
+            --text-muted: #9ca3af;
+            --code-bg: #374151;
+            --code-text: #e5e7eb;
+            --error-bg: #4c2323;
+            --error-text: #fecaca;
+            --error-border: #991b1b;
+            --logo-filter: invert(1);
+        }
+
+        @keyframes pulse-arrow {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(15px, 15px) scale(1.1);
+                opacity: 0.7;
+            }
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 100%;
+            font-family: var(--font-family-sans);
+            background-color: var(--bg);
+            color: var(--text);
             margin: 0;
-            padding: 0;
-            line-height: 1.6;
-            color: var(--color-text);
-            background-color: #f9f9f9;
-        }
-        
-        header {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 15px 0;
-        }
-        
-        .header-content {
+            padding: 2rem;
             display: flex;
-            align-items: center;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 20px;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
         .logo {
             height: 40px;
-            margin-right: 15px;
+            width: auto;
         }
         
-        .header-title {
-            color: var(--color-primary);
-            margin: 0;
-            font-weight: 600;
-            font-size: 1.5rem;
+        .theme-switcher {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .theme-switcher:hover {
+            background-color: var(--surface);
+        }
+
+        .theme-switcher svg {
+            width: 24px;
+            height: 24px;
+            color: var(--text-muted);
+        }
+
+        #sun-icon { display: none; }
+        [data-theme="dark"] #sun-icon { display: block; }
+        [data-theme="dark"] #moon-icon { display: none; }
+
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
         
-        .main-content {
-            max-width: 1000px;
+        .gradient-text {
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-stop));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
             margin: 0 auto;
-            padding: 40px 20px;
-            background-color: white;
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        
-        .container {
-            margin-top: 30px;
+
+        .card, .result-card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        
-        .card {
-            background-color: var(--color-secondary);
-            border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-        
-        .card-title {
-            color: var(--color-primary);
+
+        .card h2, .result-card h2, .client-section h2 {
             margin-top: 0;
-            margin-bottom: 15px;
-            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }
+
+        .client-section h3 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .client-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .client-section h4 .icon {
+            color: var(--accent);
+            width: 28px;
+            height: 28px;
+        }
+
+        .client-section p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .client-section .lead {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+        }
+
+        .client-section {
+            margin-bottom: 3rem;
+        }
+
+        .guidance-points {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .example-questions {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 1rem;
+        }
+
+        .example-questions li {
+            background-color: var(--bg);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            position: relative;
+        }
+        
+        .example-questions li::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-stop));
+        }
+        
+        .example-questions .question-text {
+            flex-grow: 1;
+        }
+
+        .copy-question-btn {
+            background-color: var(--border);
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .copy-question-btn:hover {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+        
+        .gradient-divider {
+            height: 4px;
+            width: 100%;
+            background: linear-gradient(to right, var(--gradient-start), var(--gradient-stop));
+            border: 0;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 2px;
+        }
+
+
+        textarea#script-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 1.5rem;
+            box-sizing: border-box;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+             background-color: var(--border);
+        }
+
+        .code-container {
+            position: relative;
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        code {
+            font-family: monospace;
+            color: var(--code-text);
+            font-size: 0.95rem;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #4f5b6b;
+            color: white;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #6d7b90;
+        }
+
+        .copy-message {
+            display: none;
+            position: absolute;
+            top: 1rem;
+            right: 5.5rem;
+            background-color: var(--accent);
+            color: var(--bg);
+            padding: 0.5rem 0.75rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
         }
         
         .error {
-            color: #d9534f;
-            padding: 15px;
-            background-color: #f8d7da;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border-left: 4px solid #d9534f;
+            color: var(--error-text);
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
         
-        .success {
-            color: #2e7d32;
-            padding: 15px;
-            background-color: #e8f5e9;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--color-highlight);
-        }
-        
-        code {
-            background-color: rgba(0, 0, 0, 0.05);
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9em;
-        }
-        
-        #example-url {
-            display: block;
-            padding: 12px;
-            margin: 10px 0;
-            background-color: rgba(0, 0, 0, 0.05);
-            border-radius: 6px;
-            word-break: break-all;
-        }
-        
-        footer {
-            max-width: 1000px;
-            margin: 20px auto;
-            text-align: center;
-            color: #888;
-            font-size: 0.9em;
-            padding: 0 20px 40px 20px;
+        .error code {
+            color: var(--error-text);
         }
 
-        /* New styles for the updated interface */
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .primary-button {
-            background-color: var(--color-primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            flex: 1;
-            transition: background-color 0.2s;
-        }
-
-        .primary-button:hover {
-            background-color: #003a74;
-        }
-
-        .code-block-container {
-            position: relative;
-            margin-top: 20px;
-        }
-
-        .code-block {
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 15px;
-            font-family: 'Courier New', Courier, monospace;
-            white-space: pre-wrap;
-            word-break: break-all;
-            margin-bottom: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-
-        .copy-button:hover {
-            opacity: 1;
-        }
-
-        .instructions {
-            background-color: #f0f7ff;
-            border-left: 4px solid var(--color-primary);
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 20px;
-        }
-
-        .instructions h3 {
-            margin-top: 0;
-            color: var(--color-primary);
-        }
-
-        .instructions ol {
-            padding-left: 20px;
-        }
-
-        /* Client View Styles */
-        .client-view {
-            display: none; /* Hidden by default */
-        }
-
-        .admin-view {
-            display: block; /* Shown by default */
-        }
-
-        .client-content {
-            transition: background-color 0.5s ease;
-        }
-
-        .chat-pointer {
+        .pulse-arrow-indicator {
             position: fixed;
-            bottom: 100px;
             right: 80px;
-            width: 120px;
-            height: 80px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23004c97'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-size: contain;
-            transform: rotate(45deg);
-            opacity: 0.7;
-            animation: pulse 2s infinite;
+            bottom: 80px;
+            width: 60px;
+            height: 60px;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease-out;
         }
 
-        @keyframes pulse {
-            0% { opacity: 0.5; transform: rotate(45deg) scale(1); }
-            50% { opacity: 0.8; transform: rotate(45deg) scale(1.1); }
-            100% { opacity: 0.5; transform: rotate(45deg) scale(1); }
+        .pulse-arrow-indicator.active {
+            opacity: 1;
+            animation: pulse-arrow 3s infinite ease-in-out;
         }
 
-        .welcome-message {
-            text-align: center;
-            margin: 30px 0;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-        }
-
-        .welcome-message h2 {
-            color: var(--widget-theme);
-            margin-bottom: 15px;
-        }
-
-        .widget-info {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-            margin-top: 30px;
-        }
-
-        .widget-info-card {
-            flex: 1;
-            min-width: 300px;
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .widget-info-card h3 {
-            color: var(--widget-theme);
-            margin-top: 0;
+        .pulse-arrow-indicator svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 5px var(--accent));
         }
     </style>
 </head>
-<body>
-    <header>
-        <div class="header-content">
-            <img src="https://account-stage.geckoengage.com/images/gecko.svg" alt="Gecko Logo" class="logo">
-            <h1 class="header-title">Chat Widget Test Page</h1>
+<body data-theme="light">
+
+    <div class="container">
+        <div class="page-header">
+            <img id="logo" src="assets/light-logo.png" alt="Company Logo" class="logo"
+                 onerror="this.onerror=null;this.src='https://placehold.co/200x50/ffffff/111827?text=Logo';">
+            <button id="theme-switcher" class="theme-switcher" aria-label="Toggle theme">
+                <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>
+                <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>
+            </button>
         </div>
-    </header>
-    
-    <!-- Admin View -->
-    <div class="main-content admin-view" id="admin-view">
-        <div id="admin-status"></div>
-        
-        <div class="card">
-            <h2 class="card-title">Generate Tools from Widget Script</h2>
-            <p>Paste your Gecko Chat script below (<a href='https://app.geckoengage.com/admin/settings/widgets' target="_blank">Settings > Chat settings > Widgets > Embed Code</a>) and select an option:</p>
-            <textarea id="script-input" placeholder="e.g., <script type=&quot;text/javascript&quot;>window.GeckoChatSettings={widgetId:&quot;...&quot;,accountName:&quot;...&quot;,};</script><script type=&quot;text/javascript&quot; src=&quot;https://chat-widget.geckoengage.com&quot;></script>" style="width: 100%; height: 100px; padding: 10px; margin-bottom: 15px; border-radius: 6px; border: 1px solid #ddd;"></textarea>
-            
-            <div class="button-group">
-                <button id="generate-console" class="primary-button">Generate Console Code</button>
-                <button id="generate-url" class="primary-button">Create Shareable Test Page</button>
-            </div>
-            
-            <div id="console-result" style="margin-top: 15px; display: none;">
-                <p>Copy and paste this code into your browser's console on any webpage:</p>
-                <div class="code-block-container">
-                    <pre id="console-code" class="code-block"></pre>
-                    <button id="copy-console" class="copy-button">Copy</button>
+
+        <!-- ADMIN VIEW: For generating code and URLs -->
+        <div id="admin-view" style="display: none;">
+            <header>
+                <h1>AI Chatbot <span class="gradient-text">Implementation Helper</span> 🛠️</h1>
+                <p>Paste your chatbot script below to generate implementation tools.</p>
+            </header>
+
+            <section class="card">
+                <h2>1. Input Your Chatbot Script</h2>
+                <textarea id="script-input" rows="6" placeholder='<script type="text/javascript">window.GeckoChatSettings={widgetId:"...",accountName:"...",};</script><script type="text/javascript" src="..."></script>'></textarea>
+                <div class="button-group">
+                    <button id="generate-console" class="btn btn-secondary">Create Console Code</button>
+                    <button id="generate-url" class="btn btn-primary">Generate Meet & Greet Page</button>
                 </div>
-                <div id="console-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
-                
-                <div class="instructions">
-                    <h3>How to use Console Code</h3>
-                    <ol>
-                        <li>Navigate to the client's website where you want to demo the chat widget</li>
-                        <li>Open the browser's developer console:
-                            <ul>
-                                <li>Chrome/Edge: Press F12 or right-click and select "Inspect" then click on "Console" tab</li>
-                                <li>Firefox: Press F12 or right-click and select "Inspect Element" then click on "Console" tab</li>
-                                <li>Safari: First enable Developer Tools in Preferences > Advanced, then press Option+Command+C</li>
-                            </ul>
-                        </li>
-                        <li>Paste the code above into the console and press Enter</li>
-                        <li>After a few seconds, the chat widget will appear on the page, ready for demonstration.</li>
-                    </ol>
+            </section>
+
+            <section id="console-result" class="result-card" style="display: none;">
+                <h2>2. Console Code</h2>
+                <hr class="gradient-divider">
+                <p>Paste this code into your browser's developer console on any page to temporarily load the chatbot.</p>
+                <div class="code-container">
+                    <pre><code id="console-code"></code></pre>
+                    <button id="copy-console" class="copy-btn">Copy</button>
+                    <span id="console-copy-message" class="copy-message">Copied!</span>
                 </div>
-            </div>
-            
-            <div id="url-result" style="margin-top: 15px; display: none;">
-                <p>Your shareable test page URL:</p>
-                <div id="generated-url" class="code-block" style="padding: 12px; margin-bottom: 10px;"></div>
-                <div id="url-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
-                <p>Share this URL with clients to let them test the chat widget without any technical setup.</p>
-            </div>
+            </section>
+
+            <section id="url-result" class="result-card" style="display: none;">
+                <h2>2. Meet & Greet Page URL</h2>
+                <hr class="gradient-divider">
+                <p>Share this unique URL with your team to let them interact with the AI agent on a dedicated page.</p>
+                 <div class="code-container">
+                    <pre><code id="generated-url"></code></pre>
+                    <button id="copy-url" class="copy-btn">Copy</button>
+                    <span id="url-copy-message" class="copy-message">Copied!</span>
+                </div>
+            </section>
         </div>
-    </div>
-    
-    <!-- Client View -->
-    <div class="main-content client-view" id="client-view">
-        <div id="client-status"></div>
-        
-        <div class="client-content" id="client-content">
-            <div class="welcome-message">
-                <h2>👋 Welcome to Your Gecko Chat Widget Testing Page!</h2>
-                <p>This page has been set up with your custom Gecko Chat widget for easy testing. Interact with the chat widget by clicking the icon in the bottom right corner of this page.</p>
-            </div>
+
+        <!-- CLIENT VIEW: The Meet & Greet Page -->
+        <div id="client-view" style="display: none;">
+            <div id="client-status"></div>
             
-            <div class="widget-info">
-                <div class="widget-info-card">
-                    <h3>💡 How to Use This Chat Widget</h3>
-                    <p>Click the chat icon in the bottom-right corner of the page. Then, simply type your message and press Enter or click to send! Here are some tips to get you started:</p>
-                    <ol>
-                        <li>Try asking questions you know students will ask, and definitely ask questions that you're scared students <i>might</i> ask 😱.</li>
-                        <li>Liked the answer? Click 👍. Disliked an answer or want to discuss it further? Click 👎.</li>
-                        <li>"¿Por qué debería estudiar aquí?" Your bot is multi-lingual. Try asking questions in other languages!</li>
-                        <li>🫶 This is your unique URL. Feel free to share this page with colleagues to get their input!</li>
-                    </ol>
-                    <p>This test page allows you to experience the chat from the student/user's perspective as if they were on your website.</p>
-                </div>
-                
-                <div class="widget-info-card">
-                    <h3>⚙️ Installation Instructions</h3>
-                    <p>Ready to add this chat widget to your website? Doing so is simple - just send the following code to your IT team:</p>
-                    <div class="code-block-container">
-                        <pre id="embed-code" class="code-block"></pre>
-                        <button id="copy-embed" class="copy-button">Copy</button>
+            <section class="client-section" style="text-align: center;">
+                <h1>Meet Your New <span class="gradient-text">Digital Ambassador</span></h1>
+                <h2>Your AI assistant for is ready to meet you.</h2>
+                <p class="lead">We're delighted to introduce your new AI assistant! They've been trained on your institution's unique information - from program/course details and entry requirements to campus life and student support. This private space is for you to familiarize yourself with its capabilities before introducing it to your target audience.</p>
+            </section>
+
+            <section class="client-section card">
+                <h3>Your Assistant is Waiting</h3>
+                <p>You'll find your new Digital Ambassador waiting in the bottom-right corner of your screen. Click the icon to begin your conversation at any time.</p>
+            </section>
+
+            <section class="client-section">
+                <h2 style="text-align: center;">Getting to know your AI Agent</h2>
+                <p style="text-align: center;">The best way to build confidence in your new assistant is to chat with it as your target audience would. Your goal is to understand how it represents your institution. Think of this as briefing a new student ambassador before an Open Day.</p>
+                <hr class="gradient-divider">
+                <div class="guidance-points">
+                    <div class="guidance-point">
+                        <h4>
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
+                            Explore what it Knows
+                        </h4>
+                        <p>Ask it the typical, high-volume questions your admissions and support teams receive. Query it on specific program details, fees and funding, or accommodation. This is its core expertise. Here are some example questions you could ask:</p>
+                        <ul class="example-questions">
+                            <li><span class="question-text"><i>What are the entry requirements for a UG degree in Psychology?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>What are the tuition fees for international students from India?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>Tell me about the accommodation options on campus.</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                        </ul>
                     </div>
-                    <div id="embed-copy-message" style="color: var(--color-highlight); font-weight: 600; display: none;">✓ Copied to clipboard!</div>
-                    <p>This code should be added just before the closing <code>&lt;/body&gt;</code> tag on any page where you want the chat widget to appear.</p>
+                    <div class="guidance-point">
+                        <h4>
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" /></svg>
+                            Understand its Boundaries
+                        </h4>
+                        <p>An expert ambassador is aware of the limits of their knowledge. Let's put that to the test by asking tricky questions that are intentionally subjective. Note how it politely clarifies that it cannot answer and guides the user to the right human support channel. Examples:</p>
+                         <ul class="example-questions">
+                            <li><span class="question-text"><i>Why should I study at [your rival institution] instead of here?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>Draft me a formal letter of complaint against faculty please</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>What's the meaning of life?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                        </ul>
+                    </div>
+                    <div class="guidance-point">
+                        <h4>
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.76 9.76 0 01-2.53-.388m-5.14-1.212a9.763 9.763 0 01-2.186-5.413M3 12c0-4.556 4.03-8.25 9-8.25a9.76 9.76 0 012.53.388m5.14 1.212a9.763 9.763 0 012.186 5.413" /></svg>
+                            Soft Skills, Tone and Voice
+                        </h4>
+                        <p>We've tailored the assistant's personality to reflect your institution's ethos. Is it welcoming? Professional? Supportive? Engage with it to ensure it feels like a true extension of your university's voice. This is also a great opportunity to test how empathetic and warm your agent can be. Some questions to try out:</p>
+                         <ul class="example-questions">
+                             <li><span class="question-text"><i>I'm feeling nervous about starting university. What if I don't make friends?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>¡Hola! ¿Podrías ayudarme a entender cómo postularme?</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                            <li><span class="question-text"><i>THIS IS SO FRUSTRATING! I can't find the information I need.</i></span><button class="copy-question-btn" title="Copy question"><svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m9.375 0a9.06 9.06 0 00-9.375-9.375M3.375 19.125a9.06 9.06 0 019.375-9.375" /></svg><svg class="check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg></button></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="chat-pointer" id="chat-pointer"></div>
+            </section>
+
+             <section class="client-section card">
+                 <h2>Ready to Go Live on Your Website?</h2>
+                 <p>Once you're happy that your Digital Ambassador is ready to engage with prospective students, applicants, and the wider community, the final step is simple.</p>
+                 <h4>Your Website Snippet</h4>
+                 <p>Your CMS/Web team need only copy/paste the code, below, onto relevant pages of your website:</p>
+                 <div class="code-container">
+                    <pre><code id="embed-code"></code></pre>
+                    <button id="copy-embed" class="copy-btn">Copy</button>
+                    <span id="embed-copy-message" class="copy-message">Copied!</span>
+                </div>
+                <p style="margin-top: 1.5rem; text-align: center;">To learn more about embedding the widget, visit the <a href="https://academy.geckoengage.com/en/articles/11383829-widgets#h_e8bb47a41d" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">Gecko Academy</a>.</p>
+            </section>
         </div>
+        <p style="text-align: center;">© Gecko - Student Engagement Platform</p>
     </div>
-    
-    <footer>
-        &copy; Gecko - Student Engagement Platform
-    </footer>
+    <div class="pulse-arrow-indicator">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5">
+            <defs>
+                <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="var(--gradient-start)" />
+                    <stop offset="100%" stop-color="var(--gradient-stop)" />
+                </linearGradient>
+            </defs>
+            <path stroke="url(#arrowGradient)" stroke-linecap="round" stroke-linejoin="round" d="M4.5 4.5l15 15m0-8.25V21H12.75" />
+        </svg>
+    </div>
 
     <script>
-        // Function to get URL parameters
-        function getUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            return {
-                widgetId: params.get('widgetId'),
-                accountName: params.get('accountName'),
-                themeColor: params.get('themeColor') // Optional parameter for theme color
+        /* script.js */
+        document.addEventListener('DOMContentLoaded', function() {
+    
+            // --- THEME SWITCHER LOGIC ---
+            const themeSwitcher = document.getElementById('theme-switcher');
+            const logo = document.getElementById('logo');
+            const body = document.body;
+
+            const applyTheme = (theme) => {
+                body.setAttribute('data-theme', theme);
+                if (logo) {
+                    logo.src = theme === 'dark' ? 'assets/dark-logo.png' : 'assets/light-logo.png';
+                }
+                localStorage.setItem('theme', theme);
             };
-        }
-        
-        // Function to sanitize input
-        function sanitizeInput(input) {
-            if (!input) return '';
-            // Only allow alphanumeric characters, hyphens, and underscores
-            return input.replace(/[^a-zA-Z0-9_\-]/g, '');
-        }
-        
-        // Function to sanitize color code
-        function sanitizeColor(color) {
-            if (!color) return null;
-            // Accept hex colors with or without #
-            if (/^#?[0-9A-Fa-f]{6}$/.test(color)) {
-                return color.startsWith('#') ? color : `#${color}`;
-            }
-            return null;
-        }
 
-        // Function to load the Gecko chat widget
-        function loadGeckoWidget(widgetId, accountName, themeColor) {
-            if (!widgetId || !accountName) {
-                // If we're in client view, show a different error
-                if (document.getElementById('client-view').style.display === 'block') {
-                    document.getElementById('client-status').innerHTML = `
-                        <div class="error">
-                            <strong>Widget configuration error!</strong> Please contact your Gecko representative for assistance.
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('admin-status').innerHTML = `
-                        <div class="error">
-                            <strong>Missing parameters!</strong> Please provide both widgetId and accountName.
-                        </div>
-                    `;
-                }
-                return false;
-            }
+            themeSwitcher.addEventListener('click', () => {
+                const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            // Sanitize inputs before using them
-            const safeWidgetId = sanitizeInput(widgetId);
-            const safeAccountName = sanitizeInput(accountName);
-            
-            // Check if sanitization removed essential parts of the parameters
-            if (safeWidgetId !== widgetId || safeAccountName !== accountName) {
-                const statusElement = document.getElementById('client-view').style.display === 'block' ? 
-                    document.getElementById('client-status') : document.getElementById('admin-status');
-                
-                statusElement.innerHTML = `
-                    <div class="error">
-                        <strong>Invalid characters detected!</strong> Parameters should only contain letters, numbers, hyphens, and underscores.
-                    </div>
-                `;
-                return false;
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (prefersDark) {
+                applyTheme('dark');
             }
 
-            // Create the first script element with widget settings
-            const settingsScript = document.createElement('script');
-            settingsScript.type = 'text/javascript';
-            settingsScript.text = `window.GeckoChatSettings={widgetId:"${safeWidgetId}",accountName:"${safeAccountName}",};`;
-            document.head.appendChild(settingsScript);
 
-            // Create the second script element to load the widget
-            const widgetScript = document.createElement('script');
-            widgetScript.type = 'text/javascript';
-            widgetScript.src = 'https://chat-widget.geckoengage.com';
-            document.head.appendChild(widgetScript);
-
-            // If in client view, populate the embed code
-            if (document.getElementById('client-view').style.display === 'block') {
-                document.getElementById('embed-code').textContent = 
-                    `<script type="text/javascript">
-window.GeckoChatSettings = {
-    widgetId: "${safeWidgetId}",
-    accountName: "${safeAccountName}"
-};
-<\/script>
-<script type="text/javascript" src="https://chat-widget.geckoengage.com"><\/script>`;
-
-                // If theme color is provided, apply it to the client view
-                if (themeColor) {
-                    const safeColor = sanitizeColor(themeColor);
-                    if (safeColor) {
-                        document.documentElement.style.setProperty('--widget-theme', safeColor);
-                        
-                        // Apply a very light version of the theme color to the background
-                        const lightColor = `${safeColor}10`; // 10% opacity
-                        document.getElementById('client-content').style.backgroundColor = lightColor;
-                    }
-                }
-            } else {
-                document.getElementById('admin-status').innerHTML = `
-                    <div class="success">
-                        <strong>Widget loaded successfully!</strong><br>
-                        Widget ID: ${safeWidgetId}<br>
-                        Account Name: ${safeAccountName}
-                    </div>
-                `;
-            }
+            // --- UTILITY FUNCTIONS ---
             
-            return true;
-        }
-        
-        // Function to extract parameters from script
-        function extractParamsFromScript(scriptText) {
-            const widgetIdMatch = scriptText.match(/widgetId:"([^"]+)"/);
-            const accountNameMatch = scriptText.match(/accountName:"([^"]+)"/);
-            
-            if (widgetIdMatch && accountNameMatch) {
+            function getUrlParams() {
+                const params = new URLSearchParams(window.location.search);
                 return {
-                    widgetId: widgetIdMatch[1],
-                    accountName: accountNameMatch[1]
+                    widgetId: params.get('widgetId'),
+                    accountName: params.get('accountName')
                 };
             }
             
-            return null;
-        }
-        
-        // Function to generate console code
-        function generateConsoleCode() {
-            const scriptInput = document.getElementById('script-input').value;
-            const consoleResult = document.getElementById('console-result');
-            const consoleCode = document.getElementById('console-code');
-            const copyMessage = document.getElementById('console-copy-message');
-            const urlResult = document.getElementById('url-result');
+            function formatAccountName(name) {
+                if (!name) return "Your Institution";
+                return name
+                    .replace(/[-_]/g, ' ') // Replace hyphens and underscores with spaces
+                    .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize first letter of each word
+            }
+
+            function sanitizeInput(input) {
+                if (!input) return '';
+                return input.replace(/[^a-zA-Z0-9_\-]/g, '');
+            }
+
+            function extractParamsFromScript(scriptText) {
+                const widgetIdMatch = scriptText.match(/widgetId:\s*"([^"]+)"/);
+                const accountNameMatch = scriptText.match(/accountName:\s*"([^"]+)"/);
+                
+                if (widgetIdMatch && accountNameMatch) {
+                    return {
+                        widgetId: widgetIdMatch[1],
+                        accountName: accountNameMatch[1]
+                    };
+                }
+                return null;
+            }
             
-            // Hide other results and reset
-            urlResult.style.display = 'none';
-            copyMessage.style.display = 'none';
-            
-            // Extract parameters from script
-            const params = extractParamsFromScript(scriptInput);
-            
-            if (!params) {
+            function showCopyMessage(elementId) {
+                const message = document.getElementById(elementId);
+                if (message) {
+                    message.style.display = 'inline-block';
+                    setTimeout(() => {
+                        message.style.display = 'none';
+                    }, 2000);
+                }
+            }
+
+            function copyToClipboard(text, messageElementId) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        if (messageElementId) {
+                            showCopyMessage(messageElementId)
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text using Clipboard API: ', err);
+                        try {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = text;
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textArea);
+                            if (messageElementId) {
+                                showCopyMessage(messageElementId);
+                            }
+                        } catch (fallbackErr) {
+                            console.error('Fallback copy method failed: ', fallbackErr);
+                        }
+                    });
+            }
+
+
+            // --- WIDGET LOADING LOGIC ---
+
+            function loadGeckoWidget(widgetId, accountName) {
+                const statusDiv = document.getElementById('client-status');
+                if (!widgetId || !accountName) {
+                    statusDiv.innerHTML = `<div class="error"><strong>Configuration Error!</strong> The link is missing required details.</div>`;
+                    return;
+                }
+
+                const safeWidgetId = sanitizeInput(widgetId);
+                const safeAccountName = sanitizeInput(accountName);
+
+                if (safeWidgetId !== widgetId || safeAccountName !== accountName) {
+                    statusDiv.innerHTML = `<div class="error"><strong>Invalid Parameters!</strong> The URL contains unsupported characters.</div>`;
+                    return;
+                }
+                
+                // Update University Name placeholder
+                const uniNameEl = document.getElementById('university-name');
+                if(uniNameEl) {
+                    uniNameEl.textContent = formatAccountName(safeAccountName);
+                }
+
+                // Activate pulse indicator
+                const pulseIndicator = document.querySelector('.pulse-arrow-indicator');
+                if (pulseIndicator) {
+                    pulseIndicator.classList.add('active');
+                    setTimeout(() => {
+                        pulseIndicator.classList.remove('active');
+                    }, 30000); // Fade out after 30 seconds
+                }
+
+
+                const settingsScript = document.createElement('script');
+                settingsScript.type = 'text/javascript';
+                settingsScript.text = `window.GeckoChatSettings={widgetId:"${safeWidgetId}",accountName:"${safeAccountName}",};`;
+                document.head.appendChild(settingsScript);
+
+                const widgetScript = document.createElement('script');
+                widgetScript.type = 'text/javascript';
+                widgetScript.src = 'https://chat-widget.geckoengage.com';
+                document.head.appendChild(widgetScript);
+
+                document.getElementById('embed-code').textContent = 
+        `<script type="text/javascript">
+        window.GeckoChatSettings = {
+            widgetId: "${safeWidgetId}",
+            accountName: "${safeAccountName}"
+        };
+        <\/script>
+        <script type="text/javascript" src="https://chat-widget.geckoengage.com"><\/script>`;
+            }
+
+            // --- EVENT HANDLER FUNCTIONS ---
+
+            function handleGenerateConsoleCode() {
+                const scriptInput = document.getElementById('script-input').value;
+                const consoleResult = document.getElementById('console-result');
+                const consoleCodeEl = document.getElementById('console-code');
+                document.getElementById('url-result').style.display = 'none';
+
+                const params = extractParamsFromScript(scriptInput);
+                if (!params) {
+                    consoleCodeEl.innerHTML = `<code class="error"><strong>Invalid script format!</strong> Could not find widgetId and accountName.</code>`;
+                    consoleResult.style.display = 'block';
+                    return;
+                }
+                
+                const code = `// Set widget settings
+        window.GeckoChatSettings = {
+            widgetId: "${params.widgetId}",
+            accountName: "${params.accountName}"
+        };
+
+        // Load GeckoChat script dynamically
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://chat-widget.geckoengage.com';
+        document.head.appendChild(script);`;
+                
+                consoleCodeEl.textContent = code;
                 consoleResult.style.display = 'block';
-                consoleCode.innerHTML = `<div class="error">
-                    <strong>Invalid script format!</strong> Could not extract widgetId and accountName.
-                </div>`;
-                return;
+                copyToClipboard(code, 'console-copy-message');
             }
-            
-            // Generate console code
-            const code = `// Set widget settings
-window.GeckoChatSettings = {
-    widgetId: "${params.widgetId}",
-    accountName: "${params.accountName}"
-};
 
-// Load GeckoChat script dynamically
-var script = document.createElement('script');
-script.type = 'text/javascript';
-script.src = 'https://chat-widget.geckoengage.com';
-document.head.appendChild(script);`;
-            
-            // Display code
-            consoleResult.style.display = 'block';
-            consoleCode.textContent = code;
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(code)
-                .then(() => {
-                    copyMessage.style.display = 'block';
-                    setTimeout(() => {
-                        copyMessage.style.display = 'none';
-                    }, 3000);
-                })
-                .catch(err => {
-                    console.error('Could not copy text: ', err);
-                });
-        }
-        
-        // Function to generate URL and copy to clipboard
-        function generateAndCopyUrl() {
-            const scriptInput = document.getElementById('script-input').value;
-            const urlResult = document.getElementById('url-result');
-            const generatedUrl = document.getElementById('generated-url');
-            const copyMessage = document.getElementById('url-copy-message');
-            const consoleResult = document.getElementById('console-result');
-            
-            // Hide other results and reset
-            consoleResult.style.display = 'none';
-            copyMessage.style.display = 'none';
-            
-            // Extract parameters from script
-            const params = extractParamsFromScript(scriptInput);
-            
-            if (!params) {
+            function handleGenerateUrl() {
+                const scriptInput = document.getElementById('script-input').value;
+                const urlResult = document.getElementById('url-result');
+                const generatedUrlEl = document.getElementById('generated-url');
+                document.getElementById('console-result').style.display = 'none';
+
+                const params = extractParamsFromScript(scriptInput);
+                if (!params) {
+                    generatedUrlEl.innerHTML = `<code class="error"><strong>Invalid script format!</strong> Could not find widgetId and accountName.</code>`;
+                    urlResult.style.display = 'block';
+                    return;
+                }
+                
+                const baseUrl = window.location.origin + window.location.pathname;
+                const fullUrl = `${baseUrl}?widgetId=${params.widgetId}&accountName=${params.accountName}`;
+                
+                generatedUrlEl.textContent = fullUrl;
                 urlResult.style.display = 'block';
-                generatedUrl.innerHTML = `
-                    <div class="error">
-                        <strong>Invalid script format!</strong> Could not extract widgetId and accountName.
-                    </div>
-                `;
-                return;
+                copyToClipboard(fullUrl, 'url-copy-message');
             }
-            
-            // Generate URL with fixed base URL
-            const baseUrl = "https://geckoengage.com/assets/widget-test.html";
-            const fullUrl = `${baseUrl}?widgetId=${params.widgetId}&accountName=${params.accountName}`;
-            
-            // Display URL
-            urlResult.style.display = 'block';
-            generatedUrl.textContent = fullUrl;
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(fullUrl)
-                .then(() => {
-                    copyMessage.style.display = 'block';
-                    setTimeout(() => {
-                        copyMessage.style.display = 'none';
-                    }, 3000);
-                })
-                .catch(err => {
-                    console.error('Could not copy text: ', err);
-                });
-        }
-            
-        // Function to copy embed code
-        function copyEmbedCode() {
-            const embedCode = document.getElementById('embed-code').textContent;
-            const copyMessage = document.getElementById('embed-copy-message');
-            
-            navigator.clipboard.writeText(embedCode)
-                .then(() => {
-                    copyMessage.style.display = 'block';
-                    setTimeout(() => {
-                        copyMessage.style.display = 'none';
-                    }, 3000);
-                })
-                .catch(err => {
-                    console.error('Could not copy text: ', err);
-                });
-        }
 
-        // On page load
-        document.addEventListener('DOMContentLoaded', function() {
+            // --- INITIALIZATION & EVENT LISTENERS ---
+
             const params = getUrlParams();
             
-            // Set up copy buttons
-            document.getElementById('copy-console').addEventListener('click', function() {
-                const code = document.getElementById('console-code').textContent;
-                navigator.clipboard.writeText(code)
-                    .then(() => {
-                        const copyMessage = document.getElementById('console-copy-message');
-                        copyMessage.style.display = 'block';
+            const generateUrlBtn = document.getElementById('generate-url');
+            const generateConsoleBtn = document.getElementById('generate-console');
+            const copyConsoleBtn = document.getElementById('copy-console');
+            const copyUrlBtn = document.getElementById('copy-url');
+            const copyEmbedBtn = document.getElementById('copy-embed');
+
+            if (generateUrlBtn) {
+                generateUrlBtn.addEventListener('click', handleGenerateUrl);
+            }
+            if (generateConsoleBtn) {
+                generateConsoleBtn.addEventListener('click', handleGenerateConsoleCode);
+            }
+            if (copyConsoleBtn) {
+                copyConsoleBtn.addEventListener('click', () => {
+                    copyToClipboard(document.getElementById('console-code').textContent, 'console-copy-message');
+                });
+            }
+            if (copyUrlBtn) {
+                copyUrlBtn.addEventListener('click', () => {
+                    copyToClipboard(document.getElementById('generated-url').textContent, 'url-copy-message');
+                });
+            }
+            if (copyEmbedBtn) {
+                copyEmbedBtn.addEventListener('click', () => {
+                    copyToClipboard(document.getElementById('embed-code').textContent, 'embed-copy-message');
+                });
+            }
+
+            // Add listeners for example question copy buttons
+            document.querySelectorAll('.copy-question-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const btn = e.currentTarget;
+                    const questionTextElement = btn.previousElementSibling;
+                    if (questionTextElement) {
+                        const textToCopy = questionTextElement.textContent.trim();
+                        copyToClipboard(textToCopy, null); // No message needed, just visual feedback
+
+                        // Visual feedback
+                        const copyIcon = btn.querySelector('.copy-icon');
+                        const checkIcon = btn.querySelector('.check-icon');
+                        if (copyIcon) copyIcon.style.display = 'none';
+                        if (checkIcon) checkIcon.style.display = 'block';
+
                         setTimeout(() => {
-                            copyMessage.style.display = 'none';
-                        }, 3000);
-                    });
+                            if (copyIcon) copyIcon.style.display = 'block';
+                            if (checkIcon) checkIcon.style.display = 'none';
+                        }, 2000);
+                    }
+                });
             });
-            
-            document.getElementById('copy-embed').addEventListener('click', copyEmbedCode);
-            
-            // Set up action buttons
-            document.getElementById('generate-console').addEventListener('click', generateConsoleCode);
-            document.getElementById('generate-url').addEventListener('click', generateAndCopyUrl);
-            
-            // Check if we should show client or admin view
+
             if (params.widgetId && params.accountName) {
-                // Show client view, hide admin view
                 document.getElementById('client-view').style.display = 'block';
                 document.getElementById('admin-view').style.display = 'none';
-                
-                // Load the widget
-                loadGeckoWidget(params.widgetId, params.accountName, params.themeColor);
-                
-                // Hide the chat pointer after 10 seconds
-                setTimeout(() => {
-                    const pointer = document.getElementById('chat-pointer');
-                    if (pointer) {
-                        pointer.style.opacity = '0';
-                        pointer.style.transition = 'opacity 1s ease';
-                    }
-                }, 10000);
+                loadGeckoWidget(params.widgetId, params.accountName);
             } else {
-                // Show admin view, hide client view
                 document.getElementById('admin-view').style.display = 'block';
                 document.getElementById('client-view').style.display = 'none';
             }
         });
-        
-        // Try to detect widget theme color (this is experimental and may not work)
-        window.addEventListener('message', function(event) {
-            // Check if the message is from the Gecko Chat widget
-            if (event.data && event.data.type === 'geckochat:loaded') {
-                console.log('Gecko Chat widget loaded');
-                
-                // The widget doesn't currently broadcast its theme color,
-                // but if it did in the future, we could capture it here
-            }
-        });
-    </script>
     </script>
 </body>
 </html>
