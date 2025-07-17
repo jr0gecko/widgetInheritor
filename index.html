@@ -165,6 +165,10 @@
         .client-section h4 {
             font-size: 1.2rem;
             margin-bottom: 0.5rem;
+        }
+
+        /* Apply flexbox ONLY to h4s that contain an icon */
+        .client-section h4:has(.icon) {
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -174,6 +178,7 @@
             color: var(--accent);
             width: 28px;
             height: 28px;
+            flex-shrink: 0;
         }
 
         .client-section p {
@@ -516,13 +521,14 @@
                  <h2>Ready to Go Live on Your Website?</h2>
                  <p>Once you're happy that your Digital Ambassador is ready to engage with prospective students, applicants, and the wider community, the final step is simple.</p>
                  <h4>Your Website Snippet</h4>
-                 <p>Your CMS/Web team need only copy/paste the code, below, onto relevant pages of your website:</p>
+                 <p>Your CMS/Web team need only copy/paste the code, below, onto relevant pages of your website. learn more about embedding the widget, visit the <a href="https://academy.geckoengage.com/en/articles/11383829-widgets#h_e8bb47a41d" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">Gecko Academy</a>.</p>
                  <div class="code-container">
                     <pre><code id="embed-code"></code></pre>
                     <button id="copy-embed" class="copy-btn">Copy</button>
                     <span id="embed-copy-message" class="copy-message">Copied!</span>
                 </div>
-                <p style="margin-top: 1.5rem; text-align: center;">To learn more about embedding the widget, visit the <a href="https://academy.geckoengage.com/en/articles/11383829-widgets#h_e8bb47a41d" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">Gecko Academy</a>.</p>
+                <h4>Want to <span class="gradient-text">Maximize Engagement?</span></h4>
+                <p style="margin-top: 1.5rem; text-align: center;">We recommend adding the widget across your whole site to capture as much traffic as possible! For tips & tricks on what works well, take a look at our best practice <a href="https://geckoengage.com/articles/launching-an-ai-chatbot-heres-what-works/" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">guide</a>.</p>
             </section>
         </div>
         <p style="text-align: center;">© Gecko - Student Engagement Platform</p>
